@@ -33,7 +33,7 @@ app.get('/sendSMS', (req, res) => {
       console.log(response.data)
       let sessionId = response.data.split(':')[1].trim();
       console.log("sessionId: " +sessionId);
-      sendSMSBulk(sessionId);
+      sendSMSBulk(sessionId, res);
     })
     .catch((error) => {
       console.log('error ' + error)
@@ -49,13 +49,14 @@ app.get('/splitFile', (req, res)=>{
   })();
 })
 
-function sendSMSBulk(sessionId){
+function sendSMSBulk(sessionId, res){
   const promiseArray = [];
   for (let index = 0; index < splitFileCount; index++) {
         promiseArray.push(sendSMS(sessionId, index+1))
   }
   Promise.all(promiseArray).then(value => {
     console.log(value);
+    res.send(value);
   })  
 }
 
@@ -75,7 +76,7 @@ function sendSMS(sessionId, num){
     })
     .then((response) => {
       // If request is good...
-      console.log(response.data)
+      console.log('MSG trigger response: '+response.data)
       resolve(response.data)
     })
     .catch((error) => {
@@ -87,7 +88,7 @@ function sendSMS(sessionId, num){
 }
 
 app.get('/bulk/:filename', (req, res) => {
-  console.log(req.params.filename);
+  console.log('FileName: '+req.params.filename);
   // res.send("Done")
   const file = `${process.env.OUTDIR}/${req.params.filename}`;
   res.download(file)
