@@ -1,0 +1,30 @@
+{
+  "name": "bulksms",
+  "version": "1.0.0",
+  "description": "To send bulk sms using SMSlive247",
+  "main": "index.js",
+  "scripts": {
+    "start": "env-cmd node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sathishkumarece/BulkSMS.git"
+  },
+  "keywords": [
+    "SMS",
+    "BulkSMS",
+    "SMSLive"
+  ],
+  "author": "Sathishkumar NATARAJ",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sathishkumarece/BulkSMS/issues"
+  },
+  "homepage": "https://github.com/sathishkumarece/BulkSMS#readme",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "express": "^4.17.1",
+    "method-override": "^3.0.0"
+  }
+}
