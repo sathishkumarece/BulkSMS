@@ -4,7 +4,7 @@
   "description": "To send bulk sms using SMSlive247",
   "main": "index.js",
   "scripts": {
-    "start": "env-cmd node index.js",
+    "start": "env-cmd node index.js >> log-file.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

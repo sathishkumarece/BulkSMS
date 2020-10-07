@@ -2,6 +2,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const methodOverride = require('method-override')
 const axios = require('axios')
+const querystring = require('querystring')
 const splitFile = require('./splitFile')
 
 const app = express()
@@ -16,7 +17,7 @@ app.listen(port, () => {
   console.log('Server started!!!')
 })
 
-var splitFileCount;
+var splitFileCount = 1;
 const smsLiveURL = 'http://www.smslive247.com/http/index.aspx'
 app.get('/sendSMS', (req, res) => {
   axios
@@ -32,11 +33,11 @@ app.get('/sendSMS', (req, res) => {
       // If request is good...
       console.log(response.data)
       let sessionId = response.data.split(':')[1].trim();
-      console.log("sessionId: " +sessionId);
+      console.log(new Date() + " sessionId: " +sessionId);
       sendSMSBulk(sessionId, res);
     })
     .catch((error) => {
-      console.log('error ' + error)
+      console.log(new Date() + ' error ' + error)
     })
 })
 
@@ -55,7 +56,7 @@ function sendSMSBulk(sessionId, res){
         promiseArray.push(sendSMS(sessionId, index+1))
   }
   Promise.all(promiseArray).then(value => {
-    console.log(value);
+    console.log(new Date() + value);
     res.send(value);
   })  
 }
@@ -67,20 +68,19 @@ function sendSMS(sessionId, num){
       params: {
         cmd: 'sendmsg',
         sessionid: sessionId,
-        message: "This is text sms",
+        message: 'Have you heard of apparel by Deeone on Instagram? We bring you great deals for all from the US. Follow us today @apparel by Deeone and shop at your convenience',
         sender: process.env.SENDER,
         sendto: `${process.env.APPURL}/bulk/input${num}.txt`,
-        // sendto: '2348080086841',
         msgtype: 0
       },
     })
     .then((response) => {
       // If request is good...
-      console.log('MSG trigger response: '+response.data)
-      resolve(response.data)
+      console.log(new Date() + ' MSG trigger response: '+response.data + ' for Num: '+num)
+      resolve(response.data + ' for Num: '+num)
     })
     .catch((error) => {
-      console.log('error ' + error)
+      console.log( new Date() + ' error ' + error)
       reject(error)
     })
   })
@@ -88,8 +88,87 @@ function sendSMS(sessionId, num){
 }
 
 app.get('/bulk/:filename', (req, res) => {
-  console.log('FileName: '+req.params.filename);
+  console.log(new Date() + ' FileName: '+req.params.filename);
   // res.send("Done")
   const file = `${process.env.OUTDIR}/${req.params.filename}`;
   res.download(file)
+})
+
+app.get('/getBalance', (req, res)=>{
+  axios
+    .post(smsLiveURL, null, {
+      params: {
+        cmd: 'querybalance',
+        sessionid: process.env.SESSIONID
+      },
+    })
+    .then((response) => {
+      // If request is good...
+      console.log(new Date() + ' Msg balance: ' + response.data)
+      res.send('Msg balance: ' + response.data)
+    })
+    .catch((error) => {
+      console.log(new Date() + ' error ' + error)
+      res.send('error ' + error)
+    })
+})
+
+app.get('/getMsgCharge/:msgId', (req, res)=>{
+  axios
+    .post(smsLiveURL, null, {
+      params: {
+        cmd: 'querymsgcharge',
+        sessionid: process.env.SESSIONID,
+        messageid: req.params.msgId
+      },
+    })
+    .then((response) => {
+      // If request is good...
+      console.log(new Date() + ' Msg charge: ' + response.data + ' for Msg Id: ' + req.params.msgId)
+      res.send('Msg charge: ' + response.data+ ' for Msg Id: ' + req.params.msgId)
+    })
+    .catch((error) => {
+      console.log(new Date() + ' error ' + error)
+      res.send('error ' + error)
+    })
+})
+
+app.get('/getMsgStatus/:msgId', (req, res)=>{
+  axios
+    .post(smsLiveURL, null, {
+      params: {
+        cmd: 'querymsgstatus',
+        sessionid: process.env.SESSIONID,
+        messageid: req.params.msgId
+      },
+    })
+    .then((response) => {
+      // If request is good...
+      console.log(new Date() + ' Msg status: ' + response.data + ' for Msg Id: ' + req.params.msgId)
+      res.send('Msg status: ' + response.data+ ' for Msg Id: ' + req.params.msgId)
+    })
+    .catch((error) => {
+      console.log(new Date() + ' error ' + error)
+      res.send('error ' + error)
+    })
+})
+
+app.get('/getCoverage/:phno', (req, res)=>{
+  axios
+    .post(smsLiveURL, null, {
+      params: {
+        cmd: 'querycoverage',
+        sessionid: process.env.SESSIONID,
+        msisdn: req.params.phno
+      },
+    })
+    .then((response) => {
+      // If request is good...
+      console.log(new Date() + ' ' + response.data + ' for Phone number: ' + req.params.phno)
+      res.send(response.data+ ' for Phone number: ' + req.params.phno)
+    })
+    .catch((error) => {
+      console.log(new Date() + ' error ' + error)
+      res.send('error ' + error)
+    })
 })
