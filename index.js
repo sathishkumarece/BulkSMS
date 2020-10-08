@@ -3,6 +3,8 @@ const bodyParser = require('body-parser')
 const methodOverride = require('method-override')
 const axios = require('axios')
 const querystring = require('querystring')
+const fs = require('fs')
+const path = require('path')
 const splitFile = require('./splitFile')
 
 const app = express()
@@ -51,9 +53,10 @@ app.get('/splitFile', (req, res)=>{
 })
 
 function sendSMSBulk(sessionId, res){
+  const message = fs.readFileSync(path.join(process.env.INDIR, process.env.MSGFILE), "utf8")
   const promiseArray = [];
   for (let index = 0; index < splitFileCount; index++) {
-        promiseArray.push(sendSMS(sessionId, index+1))
+        promiseArray.push(sendSMS(sessionId, index+1, message))
   }
   Promise.all(promiseArray).then(value => {
     console.log(new Date() + value);
@@ -61,14 +64,14 @@ function sendSMSBulk(sessionId, res){
   })  
 }
 
-function sendSMS(sessionId, num){
+function sendSMS(sessionId, num, message){
   const promise = new Promise((resolve, reject)=>{
     axios
     .post(smsLiveURL, null, {
       params: {
         cmd: 'sendmsg',
         sessionid: sessionId,
-        message: 'Have you heard of apparel by Deeone on Instagram? We bring you great deals for all from the US. Follow us today @apparel by Deeone and shop at your convenience',
+        message: message,
         sender: process.env.SENDER,
         sendto: `${process.env.APPURL}/bulk/input${num}.txt`,
         msgtype: 0
@@ -90,7 +93,7 @@ function sendSMS(sessionId, num){
 app.get('/bulk/:filename', (req, res) => {
   console.log(new Date() + ' FileName: '+req.params.filename);
   // res.send("Done")
-  const file = `${process.env.OUTDIR}/${req.params.filename}`;
+  const file = path.join(process.env.OUTDIR, req.params.filename);
   res.download(file)
 })
 
