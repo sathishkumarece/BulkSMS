@@ -21,6 +21,7 @@ app.listen(port, () => {
 
 var splitFileCount = 1;
 const smsLiveURL = 'http://www.smslive247.com/http/index.aspx'
+const bulkSMSN = 'https://www.bulksmsnigeria.com/api/v1/sms/create'
 app.get('/sendSMS', (req, res) => {
   axios
     .post(smsLiveURL, null, {
@@ -175,3 +176,54 @@ app.get('/getCoverage/:phno', (req, res)=>{
       res.send('error ' + error)
     })
 })
+
+app.get('/sendBulkSMSN', (req, res)=>{
+  const message = fs.readFileSync(path.join(process.env.INDIR, process.env.MSGFILE), "utf8")
+  var promiseArray = [];
+  fs.readdir(process.env.OUTDIR, function(err, filenames) {
+    if (err) {
+      console.log(new Date() + ' api:sendBulkSMSN Error-Dir: ' + err)
+      res.send(err);
+    }
+    filenames.forEach(function(filename) {
+      promiseArray.push(new Promise((resolve,reject)=>{
+        fs.readFile(path.join(process.env.OUTDIR, filename), 'utf-8', function(err, content) {
+          if (err) {
+            console.log(new Date() + ' api:sendBulkSMSN Error-File: ' + err)
+            res.send(err);
+          }
+          sendBulkSMSN(content, message).then(value => resolve(value)).catch(err => reject(err));
+        });
+      })
+      )
+    });
+    Promise.all(promiseArray).then(value => {
+      console.log(new Date() + "Promise All: "+ value);
+      res.send(value);
+    })  
+  });
+})
+
+function sendBulkSMSN(to, message){
+  return new Promise((resolve, reject) =>{
+    axios.post(bulkSMSN, null, {
+      params: {
+        api_token: process.env.BULKSMSN_API_TOKEN,
+        from: process.env.BULKSMSN_FROM,
+        to: to,
+        body: message,
+        dnd: process.env.BULKSMSN_DND
+      }
+    }).then((response) => {
+      // If request is good...
+      console.log(new Date() + ' sendBulkSMSN: ' + JSON.stringify(response.data) + ' for Phone numbers : ' + to)
+      // res.send('Message sent for ')
+      resolve(JSON.stringify(response.data) + ' for Phone numbers : ' + to);
+    })
+    .catch((error) => {
+      console.log(new Date() + ' error ' + error)
+      reject(error)
+    })
+  })
+  
+}

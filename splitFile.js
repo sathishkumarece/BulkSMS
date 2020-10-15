@@ -2,6 +2,7 @@
 const fs = require('fs');
 var fileCount = 1
 var count = 0
+const splitLimit = process.env.SPLIT_LIMIT
 
 function splitFile(indir, infileName, outdir) {
   var outStream;
@@ -27,7 +28,7 @@ function splitFile(indir, infileName, outdir) {
         outStream.write(',')
       }
       outStream.write(line)
-      if (count >= 299) {
+      if (count >= splitLimit) {
         fileCount++
         console.log('file ', outfileName, count)
         outStream.end()
