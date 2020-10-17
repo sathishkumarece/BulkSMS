@@ -44,6 +44,26 @@ app.get('/sendSMS', (req, res) => {
     })
 })
 
+app.get('/cleanOUTDIR', (req,res)=>{
+  let promiseArray = []
+  fs.readdir(process.env.OUTDIR, (err, files) => {
+    if(err) return res.status(500).send(err);
+    files.forEach(function(file) {
+      promiseArray.push(
+        new Promise((resolve, reject)=>{
+          fs.unlink(path.join(process.env.OUTDIR, file),err => {
+            if(err) return res.status(500).send(err);
+            resolve('Cleaned')
+          })
+        })
+      )
+    })
+    Promise.all(promiseArray).then(() =>{
+      res.send("OUT directory cleared")
+    })
+  })
+})
+
 app.get('/splitFile', (req, res)=>{
   (async() => {
     const result = await splitFile(process.env.INDIR, 'input.txt', process.env.OUTDIR);
