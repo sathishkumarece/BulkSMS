@@ -5,6 +5,7 @@ var count = 0
 const splitLimit = process.env.SPLIT_LIMIT
 
 function splitFile(indir, infileName, outdir) {
+  fileCount = 1
   var outStream;
   var outfileName
   return new Promise(function(resolve, reject){
